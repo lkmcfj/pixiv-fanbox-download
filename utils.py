@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 
 class Entity:
     
@@ -15,8 +16,22 @@ class Entity:
     def from_dict(cls, info_dict):
         return cls(info_dict['creator'], info_dict['post_id'], info_dict['page_url'], info_dict['image_url'], info_dict['image_filename'], info_dict['title'])
     
-    def filepath(self):
-        return os.path.join(self.creator, self.post_id, self.image_filename)
+    def ensure_path(self):
+        if not os.path.isdir(self.creator):
+            os.mkdir(self.creator)
+        res_path = self.creator
+        if os.path.isdir(os.path.join(self.creator, self.title)):
+            res_path = os.path.join(self.creator, self.title)
+        elif os.path.isdir(os.path.join(self.creator, self.post_id)):
+            res_path = os.path.join(self.creator, self.post_id)
+        else:
+            try:
+                os.mkdir(os.path.join(self.creator, self.title))
+                res_path = os.path.join(self.creator, self.title)
+            except:
+                os.mkdir(os.path.join(self.creator, self.post_id))
+                res_path = os.path.join(self.creator, self.post_id)
+        return os.path.join(res_path, self.image_filename)
     
     def __eq__(self, other):
         return (self.creator == other.creator) and (self.post_id == other.post_id) \
@@ -35,21 +50,18 @@ class Index:
             self.index = []
             with open(filename, 'w', encoding='utf-8') as index_f:
                 json.dump(self.index, index_f)
-        self.found_new = 0
-        self.touch_old = 0
+        self.post_set = set()
+        for entity in self.index:
+            self.post_set.add(entity.post_id)
 
     def add(self, entity):
         for exist_entity in self.index:
             if exist_entity == entity:
-                self.touch_old += 1
-                return
-        self.found_new += 1
+                return False
         self.index.append(entity)
+        self.post_set.add(entity.post_id)
         self.update()
-    
-    def remove(self, pos):
-        self.index.pop(pos)
-        self.update()
+        return True
     
     def update(self):
         dump_list = [entity.__dict__ for entity in self.index]
@@ -67,3 +79,11 @@ def post_page(creator, post_id):
 
 def post_page_api(post_id):
     return 'https://api.fanbox.cc/post.info?postId={}'.format(post_id)
+
+logging.basicConfig(format='%(message)s', level=logging.INFO)
+def info(message):
+    logging.info(message)
+def warning(message):
+    logging.warning('\033[33m' + message + '\033[0m')
+def error(message):
+    logging.error('\033[31m' + message + '\033[0m')
