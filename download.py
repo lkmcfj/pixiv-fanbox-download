@@ -1,4 +1,10 @@
 import os
+import sys
+
+if sys.version_info[0] != 3:
+    print('需要用Python3解释器运行，当前版本为', sys.version)
+    sys.exit()
+
 import time
 import random
 import json
@@ -6,6 +12,7 @@ import logging
 import requests
 import conf
 import utils
+    
 
 with open('config.json', 'r', encoding='utf-8') as config_f:
     config_dict = json.load(config_f)
@@ -39,7 +46,7 @@ for i, (entity, path) in enumerate(need_download):
     if i > 0:
         time.sleep(conf.wait_sec + random.randint(5, 15))
     try:
-        utils.info('图片{}下载中'.format(path))
+        utils.info('图片{}下载中 ({}/{})'.format(path, i+1, len(need_download)))
         res = sess.get(entity.image_url, headers={'referer': entity.page_url})
         if res.ok:
             with open(path, 'wb') as target:

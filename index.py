@@ -1,4 +1,10 @@
 import os
+import sys
+
+if sys.version_info[0] != 3:
+    print('需要用Python3解释器运行，当前版本为', sys.version)
+    sys.exit()
+
 import queue
 import json
 import time
@@ -11,7 +17,7 @@ import conf
 
 def process_list(creator, list_api):
     global request_queue, cur_indexes, skipped_post
-    utils.info('creator {} - processing list: {}'.format(creator, list_api))
+    utils.info('正在处理作者{}的列表: {}'.format(creator, list_api))
     headers = {'referer': utils.list_page(creator)}
     res = sess.get(list_api, headers=headers)
     if res.ok:
@@ -22,13 +28,13 @@ def process_list(creator, list_api):
             if 'items' in json_res['body']:
                 for item in json_res['body']['items']:
                     if item['restrictedFor']:
-                        utils.info('post {} of creator {} is restricted'.format(item['id'], creator))
+                        utils.info('作者{}的页面{}没有解锁'.format(creator, item['id']))
                     else:
                         if item['id'] in cur_indexes.post_set:
                             skipped_post += 1
-                            utils.info('post {} of creator {} has been recorded, skipped'.format(item['id'], creator))
+                            utils.info('作者{}的页面{}已经被索引，跳过'.format(creator, item['id']))
                         else:
-                            utils.info('post {} of creator {} found'.format(item['id'], creator))
+                            utils.info('找到了作者{}的页面{}'.format(creator, item['id']))
                             request_queue.put((process_post, [creator, item['id']]))
             else:
                 utils.warning('key "items" not found'.format(creator))
@@ -39,7 +45,7 @@ def process_list(creator, list_api):
 
 def process_post(creator, post_id):
     global cur_indexes, new_image
-    utils.info('process post {} of creator {}'.format(post_id, creator))
+    utils.info('正在处理作者{}的页面{}'.format(creator, post_id))
     page_url = utils.post_page(creator, post_id)
     headers = {'referer': page_url}
     res = sess.get(utils.post_page_api(post_id), headers=headers)
@@ -51,7 +57,7 @@ def process_post(creator, post_id):
                 for image in json_res['body']['body']['images']:
                     cur_entity = utils.Entity(creator, post_id, page_url, image['originalUrl'], image['id'] + '.' + image['extension'], title)
                     if cur_indexes.add(cur_entity):
-                        utils.info('new image {} found'.format(cur_entity.image_filename))
+                        utils.info('发现新图片{}'.format(cur_entity.image_filename))
                         new_image += 1
             else:
                 utils.warning('no image found')
