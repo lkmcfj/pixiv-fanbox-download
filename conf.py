@@ -16,10 +16,10 @@ def parse(config_dict):
     work_path = config_dict['work-path']
     if not os.path.isdir(work_path):
         raise ConfigError('work-path="{}" 不是一个合法的路径'.format(work_path))
-    proxies = {
-        'http': config_dict['proxy'],
-        'https': config_dict['proxy']
-    }
+    proxies = dict()
+    if 'proxy' in config_dict:
+        proxies['http'] = config_dict['proxy']
+        proxies['https'] = config_dict['proxy']
     ua = config_dict['user-agent']
     if not isinstance(ua, str):
         raise ConfigError('user-agent="{}" 不是字符串'.format(ua))
