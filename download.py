@@ -58,5 +58,5 @@ for i, (entity, path) in enumerate(need_download):
             utils.warning('请求失败')
     except:
         fail_download += 1
-        utils.warning('请求异常')
+        utils.warning('请求异常: ' + str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
 print('成功下载了{}张新图片，失败{}张，{}张图片已存在'.format(succ_download, fail_download, touched))

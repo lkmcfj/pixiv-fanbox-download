@@ -19,7 +19,12 @@ def process_list(creator, list_api):
     global request_queue, cur_indexes, skipped_post
     utils.info('正在处理作者{}的列表: {}'.format(creator, list_api))
     headers = {'referer': utils.list_page(creator)}
-    res = sess.get(list_api, headers=headers)
+    try:
+        res = sess.get(list_api, headers=headers)
+    except:
+        utils.error('exception occurs in request')
+        utils.error(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
+        return
     if res.ok:
         json_res = res.json()
         if 'body' in json_res:
@@ -27,7 +32,7 @@ def process_list(creator, list_api):
                 request_queue.put((process_list, [creator, json_res['body']['nextUrl']]))
             if 'items' in json_res['body']:
                 for item in json_res['body']['items']:
-                    if item['restrictedFor']:
+                    if item['isRestricted']:
                         utils.info('作者{}的页面{}没有解锁'.format(creator, item['id']))
                     else:
                         if item['id'] in cur_indexes.post_set:
@@ -48,7 +53,12 @@ def process_post(creator, post_id):
     utils.info('正在处理作者{}的页面{}'.format(creator, post_id))
     page_url = utils.post_page(creator, post_id)
     headers = {'referer': page_url}
-    res = sess.get(utils.post_page_api(post_id), headers=headers)
+    try:
+        res = sess.get(utils.post_page_api(post_id), headers=headers)
+    except:
+        utils.error('exception occurs in request')
+        utils.error(str(sys.exc_info()[0]) + str(sys.exc_info()[1]))
+        return
     if res.ok:
         json_res = res.json()
         if ('body' in json_res) and ('body' in json_res['body']):

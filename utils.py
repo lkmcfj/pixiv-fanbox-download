@@ -20,17 +20,19 @@ class Entity:
         if not os.path.isdir(self.creator):
             os.mkdir(self.creator)
         res_path = self.creator
-        if os.path.isdir(os.path.join(self.creator, self.title)):
-            res_path = os.path.join(self.creator, self.title)
-        elif os.path.isdir(os.path.join(self.creator, self.post_id)):
-            res_path = os.path.join(self.creator, self.post_id)
+        title_path = os.path.join(self.creator, self.title.strip('. '))
+        id_path = os.path.join(self.creator, self.post_id)
+        if os.path.isdir(title_path):
+            res_path = title_path
+        elif os.path.isdir(id_path):
+            res_path = id_path
         else:
             try:
-                os.mkdir(os.path.join(self.creator, self.title))
-                res_path = os.path.join(self.creator, self.title)
+                os.mkdir(title_path)
+                res_path = title_path
             except:
-                os.mkdir(os.path.join(self.creator, self.post_id))
-                res_path = os.path.join(self.creator, self.post_id)
+                os.mkdir(id_path)
+                res_path = id_path
         return os.path.join(res_path, self.image_filename)
     
     def __eq__(self, other):
